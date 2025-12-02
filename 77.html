@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>義起同行訂餐系統 v2.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 1.8em;
+        }
+
+        .edit-title-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            flex-wrap: nowrap;
+        }
+
+        .tab {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            min-height: 400px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 推薦系統樣式 */
+        .recommend-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .recommend-btn {
+            padding: 40px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .recommend-btn.jiake {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .recommend-btn.reject {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+        }
+
+        .recommend-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .recommend-result {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .recommend-result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .result-card .category {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .result-card .items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .result-card .item-tag {
+            background: #e3f2fd;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .use-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* 美食管理樣式 */
+        .restaurant-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .restaurant-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .restaurant-info {
+            flex: 1;
+        }
+
+        .restaurant-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .restaurant-category {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .restaurant-items {
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .add-restaurant-form {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .order-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .order-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .order-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .order-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .order-card p {
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .order-card .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #764ba2;
+            margin-top: 10px;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .member-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .member-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .member-dept {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .add-member-form {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .summary-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .summary-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .summary-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-item .name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-item .count {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .summary-item .people {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: #f0f0f0;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .filter-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="edit-title-btn" id="editTitleBtn">✏️ 編輯標題</button>
+            <h1 id="systemTitle">義起同行訂餐系統</h1>
+            <p>多人協作 · 自動統計 · 智能推薦</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="order">📝 訂餐</div>
+            <div class="tab" data-tab="recommend">🎲 推薦</div>
+            <div class="tab" data-tab="list">📋 清單</div>
+            <div class="tab" data-tab="summary">📊 彙整</div>
+            <div class="tab" data-tab="stats">💰 統計</div>
+            <div class="tab" data-tab="manage">⚙️ 管理</div>
+        </div>
+
+        <div class="content">
+            <div class="success-message" id="successMessage">✅ 操作成功！</div>
+
+            <!-- 訂餐表單 -->
+            <div id="order-tab" class="tab-content active">
+                <form class="order-form" id="orderForm">
+                    <div class="form-group">
+                        <label>👤 用餐者</label>
+                        <select id="diner" required>
+                            <option value="">請選擇</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>✍️ 填單人</label>
+                        <select id="filler" required>
+                            <option value="">請選擇</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏢 部門</label>
+                        <select id="dept" required>
+                            <option value="">請選擇</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🍱 午餐品項</label>
+                        <input type="text" id="lunch" placeholder="例：排骨便當、只喝飲料、休假、夜班、PASS" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>💵 午餐金額</label>
+                        <input type="number" id="lunchPrice" placeholder="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🥤 飲料品項</label>
+                        <input type="text" id="drink" placeholder="例：紅茶、咖啡、PASS、-">
+                    </div>
+
+                    <div class="form-group">
+                        <label>💵 飲料金額</label>
+                        <input type="number" id="drinkPrice" placeholder="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🍬 甜度</label>
+                        <select id="sugar">
+                            <option value="">請選擇</option>
+                            <option value="正常糖">正常糖</option>
+                            <option value="少糖">少糖</option>
+                            <option value="半糖">半糖</option>
+                            <option value="微糖">微糖</option>
+                            <option value="一分糖">一分糖</option>
+                            <option value="無糖">無糖</option>
+                            <option value="-">-</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🧊 冰塊</label>
+                        <select id="ice">
+                            <option value="">請選擇</option>
+                            <option value="正常冰">正常冰</option>
+                            <option value="少冰">少冰</option>
+                            <option value="微冰">微冰</option>
+                            <option value="去冰">去冰</option>
+                            <option value="常溫">常溫</option>
+                            <option value="溫">溫</option>
+                            <option value="熱">熱</option>
+                            <option value="-">-</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">💾 儲存訂單</button>
+                </form>
+            </div>
+
+            <!-- 推薦系統 -->
+            <div id="recommend-tab" class="tab-content">
+                <h2 style="color: #667eea; margin-bottom: 20px;">🎲 美食推薦系統</h2>
+
+                <div class="recommend-buttons">
+                    <button class="recommend-btn jiake" onclick="recommendRestaurant('jiake')">
+                        🏢 嘉科on call<br>
+                        <span style="font-size: 0.7em;">嘉義縣太保市</span>
+                    </button>
+                    <button class="recommend-btn reject" onclick="recommendRestaurant('reject')">
+                        🚫 拒絕on call<br>
+                        <span style="font-size: 0.7em;">嘉義縣、嘉義市</span>
+                    </button>
+                </div>
+
+                <div class="recommend-result" id="recommendResult"></div>
+            </div>
+
+            <!-- 訂單列表 -->
+            <div id="list-tab" class="tab-content">
+                <h2 style="color: #667eea; margin-bottom: 20px;">📋 所有訂單</h2>
+                <div id="orderList" class="order-list"></div>
+            </div>
+
+            <!-- 餐點彙整 -->
+            <div id="summary-tab" class="tab-content">
+                <h2 style="color: #667eea; margin-bottom: 20px;">📊 餐點彙整（給點餐同仁）</h2>
+
+                <div class="summary-section">
+                    <h3>🍱 午餐彙整</h3>
+                    <div id="lunchSummary"></div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>🥤 飲料彙整</h3>
+                    <div id="drinkSummary"></div>
+                </div>
+            </div>
+
+            <!-- 統計 -->
+            <div id="stats-tab" class="tab-content">
+                <h2 style="color: #667eea; margin-bottom: 20px;">💰 費用統計</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>午餐總額</h3>
+                        <p id="totalLunch">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>飲料總額</h3>
+                        <p id="totalDrink">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>總訂單金額</h3>
+                        <p id="totalAll">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>訂購人數</h3>
+                        <p id="totalPeople">0人</p>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>👥 個人帳單</h3>
+                    <div id="personalStats"></div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>🏢 部門統計</h3>
+                    <div id="deptStats"></div>
+                </div>
+            </div>
+
+            <!-- 管理 -->
+            <div id="manage-tab" class="tab-content">
+                <h2 style="color: #667eea; margin-bottom: 20px;">⚙️ 系統管理</h2>
+
+                <!-- 成員管理 -->
+                <div class="add-member-form">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">➕ 新增成員</h3>
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" id="newMemberName" placeholder="請輸入姓名">
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>部門</label>
+                        <input type="text" id="newMemberDept" placeholder="請輸入部門">
+                    </div>
+                    <button class="btn btn-primary" id="addMemberBtn" style="margin-top: 15px; width: 100%;">新增成員</button>
+                </div>
+
+                <h3 style="color: #667eea; margin-bottom: 15px;">👥 成員列表</h3>
+                <div id="memberList" class="member-list"></div>
+
+                <!-- 美食管理 -->
+                <div class="add-restaurant-form" style="margin-top: 30px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">🍱 新增美食店家</h3>
+                    <div class="form-group">
+                        <label>區域</label>
+                        <select id="newRestaurantArea">
+                            <option value="jiake">嘉科on call（太保市）</option>
+                            <option value="reject">拒絕on call（嘉義縣市）</option>
+                            <option value="drink">飲料店</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>店家名稱</label>
+                        <input type="text" id="newRestaurantName" placeholder="請輸入店家名稱">
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>分類</label>
+                        <input type="text" id="newRestaurantCategory" placeholder="例：便當、麵食、飲料">
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>推薦餐點（用逗號分隔）</label>
+                        <input type="text" id="newRestaurantItems" placeholder="例：排骨便當,雞腿便當,炸雞">
+                    </div>
+                    <button class="btn btn-primary" id="addRestaurantBtn" style="margin-top: 15px; width: 100%;">新增店家</button>
+                </div>
+
+                <h3 style="color: #667eea; margin: 20px 0 15px;">🍴 美食店家列表</h3>
+
+                <div class="filter-tabs">
+                    <div class="filter-tab active" data-filter="all">全部</div>
+                    <div class="filter-tab" data-filter="jiake">嘉科on call</div>
+                    <div class="filter-tab" data-filter="reject">拒絕on call</div>
+                    <div class="filter-tab" data-filter="drink">飲料店</div>
+                </div>
+
+                <div id="restaurantList" class="restaurant-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯標題模態框 -->
+    <div class="modal" id="titleModal">
+        <div class="modal-content">
+            <h3>編輯系統標題</h3>
+            <div class="form-group">
+                <label>新標題</label>
+                <input type="text" id="newTitle" placeholder="請輸入新標題">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" id="saveTitleBtn" style="flex: 1;">確定</button>
+                <button class="btn btn-secondary" id="closeTitleModalBtn" style="flex: 1;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 美食資料庫 ==========
+        const defaultRestaurants = {
+            jiake: [
+                {name: "佐盅堂", category: "養生燉湯", recommend: ["梅子燉雞", "養生雞湯", "藥膳排骨"]},
+                {name: "築日食堂", category: "日式料理", recommend: ["日式定食", "豬排定食", "照燒雞腿"]},
+                {name: "太保越式料理", category: "越南料理", recommend: ["越南河粉", "春捲", "法式麵包"]},
+                {name: "太保小吃攤", category: "台式小吃", recommend: ["排骨便當", "雞腿便當", "控肉飯"]},
+                {name: "阿婆麵店", category: "麵食", recommend: ["陽春麵", "餛飩湯", "乾麵"]},
+                {name: "太保雞肉飯", category: "雞肉飯", recommend: ["雞肉飯", "滷肉飯", "排骨飯"]},
+                {name: "香園小吃", category: "台式便當", recommend: ["炸雞腿便當", "排骨便當", "魚便當"]},
+                {name: "太子便當", category: "便當", recommend: ["招牌便當", "烤雞腿", "炸排骨"]}
+            ],
+            reject: [
+                {name: "劉里長雞肉飯", category: "雞肉飯", recommend: ["雞肉飯", "火雞肉飯", "滷肉飯"]},
+                {name: "阿溪火雞肉飯", category: "雞肉飯", recommend: ["火雞肉飯", "火雞片飯", "滷肉飯"]},
+                {name: "郭家雞肉飯", category: "雞肉飯", recommend: ["雞肉飯", "粿仔湯", "下水湯"]},
+                {name: "林聰明沙鍋魚頭", category: "沙鍋料理", recommend: ["沙鍋魚頭", "砂鍋菜頭", "滷味"]},
+                {name: "噴水雞肉飯", category: "雞肉飯", recommend: ["雞肉飯", "雞片飯", "筍乾雞湯"]},
+                {name: "阿岸米糕", category: "米糕", recommend: ["米糕", "四神湯", "味噌湯"]},
+                {name: "阿霞火雞肉飯", category: "雞肉飯", recommend: ["火雞肉飯", "雞片飯", "雞魯飯"]},
+                {name: "文化路夜市", category: "夜市美食", recommend: ["豆花", "雞肉飯", "滷味"]},
+                {name: "東門雞肉飯", category: "雞肉飯", recommend: ["雞肉飯", "火雞片", "滷肉飯"]},
+                {name: "民雄鵝肉亭", category: "鵝肉", recommend: ["鵝肉", "鵝肉麵", "鵝肉飯"]},
+                {name: "阿進土產牛肉湯", category: "牛肉湯", recommend: ["牛肉湯", "牛肉麵", "炒牛肉"]},
+                {name: "品安豆花", category: "甜品", recommend: ["豆花", "粉圓豆花", "綜合豆花"]},
+                {name: "王家祖傳本產牛雜湯", category: "牛雜湯", recommend: ["牛雜湯", "牛肉湯", "牛肉麵"]},
+                {name: "阿樓師火雞肉飯", category: "雞肉飯", recommend: ["火雞肉飯", "滷肉飯", "雞片飯"]},
+                {name: "珍珍海產粥", category: "海產粥", recommend: ["海產粥", "蚵仔粥", "虱目魚粥"]},
+                {name: "阿宏師火雞肉飯", category: "雞肉飯", recommend: ["火雞肉飯", "雞片飯", "滷肉飯"]}
+            ],
+            drink: [
+                {name: "50嵐", category: "連鎖飲料", recommend: ["珍珠奶茶", "四季春茶", "波霸奶茶"]},
+                {name: "清心福全", category: "連鎖飲料", recommend: ["珍珠奶茶", "檸檬綠茶", "冬瓜茶"]},
+                {name: "迷客夏", category: "連鎖飲料", recommend: ["黑糖珍珠鮮奶", "芝芝系列", "水果茶"]},
+                {name: "CoCo都可", category: "連鎖飲料", recommend: ["三兄弟", "珍珠奶茶", "檸檬養樂多"]},
+                {name: "一沐日", category: "手搖飲料", recommend: ["水果茶", "珍珠奶茶", "奶蓋茶"]},
+                {name: "御香屋", category: "特色飲料", recommend: ["葡萄柚綠茶", "葡萄柚紅茶", "檸檬汁"]},
+                {name: "源興御香屋", category: "特色飲料", recommend: ["葡萄柚綠茶", "檸檬汁", "冬瓜茶"]},
+                {name: "茶湯會", category: "連鎖飲料", recommend: ["珍珠奶茶", "觀音拿鐵", "水果茶"]},
+                {name: "大苑子", category: "水果茶", recommend: ["芭樂檸檬", "葡萄柚綠", "百香綠茶"]},
+                {name: "鮮茶道", category: "連鎖飲料", recommend: ["翡翠檸檬", "珍珠奶茶", "水果茶"]},
+                {name: "萬波島嶼紅茶", category: "手搖飲料", recommend: ["紅茶拿鐵", "黑糖珍珠", "水果茶"]},
+                {name: "老虎堂", category: "黑糖飲品", recommend: ["黑糖波霸鮮奶", "黑糖珍珠撞奶", "黑糖奶茶"]}
+            ]
+        };
+
+        // ========== 初始化數據 ==========
+        const defaultMembers = [
+            {name: '洪眉莊', dept: '存局堂'},
+            {name: '安陵容', dept: '存局堂'},
+            {name: '甄嬛', dept: '存局堂'},
+            {name: '溫實初', dept: '存局堂'},
+            {name: '流朱', dept: '存局堂'},
+            {name: '崔槿汐', dept: '存局堂'}
+        ];
+
+        function loadMembers() {
+            let members = JSON.parse(localStorage.getItem('members') || 'null');
+            if (!members) {
+                members = defaultMembers;
+                localStorage.setItem('members', JSON.stringify(members));
+            }
+            return members;
+        }
+
+        function loadRestaurants() {
+            let restaurants = JSON.parse(localStorage.getItem('restaurants') || 'null');
+            if (!restaurants) {
+                restaurants = defaultRestaurants;
+                localStorage.setItem('restaurants', JSON.stringify(restaurants));
+            }
+            return restaurants;
+        }
+
+        function loadTitle() {
+            const title = localStorage.getItem('systemTitle') || '義起同行訂餐系統';
+            document.getElementById('systemTitle').textContent = title;
+        }
+
+        function recommendRestaurant(area) {
+            const restaurants = loadRestaurants();
+            let pool = [];
+            let areaName = '';
+
+            if (area === 'jiake') {
+                pool = restaurants.jiake;
+                areaName = '嘉科on call（太保市）';
+            } else if (area === 'reject') {
+                pool = restaurants.reject;
+                areaName = '拒絕on call（嘉義縣市）';
+            }
+
+            if (pool.length === 0) {
+                alert('這個區域還沒有店家資料！');
+                return;
+            }
+
+            const randomRestaurant = pool[Math.floor(Math.random() * pool.length)];
+            const drinkPool = restaurants.drink;
+            const randomDrink = drinkPool[Math.floor(Math.random() * drinkPool.length)];
+
+            const resultDiv = document.getElementById('recommendResult');
+            resultDiv.innerHTML = `
+                <h3 style="color: #667eea; margin-bottom: 15px;">🎲 為您推薦（${areaName}）</h3>
+
+                <div class="result-card">
+                    <h3>🍱 ${randomRestaurant.name}</h3>
+                    <div class="category">${randomRestaurant.category}</div>
+                    <div class="items">
+                        ${randomRestaurant.recommend.map(item => \`<span class="item-tag">\${item}</span>\`).join('')}
+                    </div>
+                    <button class="use-btn" onclick="fillOrder('\${randomRestaurant.name}', '\${randomRestaurant.recommend[0]}')">
+                        使用此推薦
+                    </button>
+                </div>
+
+                <div class="result-card">
+                    <h3>🥤 ${randomDrink.name}</h3>
+                    <div class="category">${randomDrink.category}</div>
+                    <div class="items">
+                        ${randomDrink.recommend.map(item => \`<span class="item-tag">\${item}</span>\`).join('')}
+                    </div>
+                    <button class="use-btn" onclick="fillDrink('\${randomDrink.name}', '\${randomDrink.recommend[0]}')">
+                        使用此推薦
+                    </button>
+                </div>
+            `;
+            resultDiv.classList.add('show');
+        }
+
+        function fillOrder(restaurant, dish) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('[data-tab="order"]').classList.add('active');
+            document.getElementById('order-tab').classList.add('active');
+
+            document.getElementById('lunch').value = \`\${restaurant} - \${dish}\`;
+
+            showMessage('已自動填入午餐資訊！');
+        }
+
+        function fillDrink(shop, drink) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('[data-tab="order"]').classList.add('active');
+            document.getElementById('order-tab').classList.add('active');
+
+            document.getElementById('drink').value = \`\${shop} - \${drink}\`;
+
+            showMessage('已自動填入飲料資訊！');
+        }
+
+        let currentFilter = 'all';
+
+        function updateRestaurantList() {
+            const restaurants = loadRestaurants();
+            const container = document.getElementById('restaurantList');
+
+            let allRestaurants = [];
+
+            if (currentFilter === 'all' || currentFilter === 'jiake') {
+                restaurants.jiake.forEach((r, i) => {
+                    allRestaurants.push({...r, area: 'jiake', index: i});
+                });
+            }
+            if (currentFilter === 'all' || currentFilter === 'reject') {
+                restaurants.reject.forEach((r, i) => {
+                    allRestaurants.push({...r, area: 'reject', index: i});
+                });
+            }
+            if (currentFilter === 'all' || currentFilter === 'drink') {
+                restaurants.drink.forEach((r, i) => {
+                    allRestaurants.push({...r, area: 'drink', index: i});
+                });
+            }
+
+            if (allRestaurants.length === 0) {
+                container.innerHTML = '<div class="empty-state">還沒有店家資料</div>';
+                return;
+            }
+
+            const areaNames = {
+                'jiake': '嘉科on call',
+                'reject': '拒絕on call',
+                'drink': '飲料店'
+            };
+
+            container.innerHTML = allRestaurants.map(r => \`
+                <div class="restaurant-item">
+                    <div class="restaurant-info">
+                        <div class="restaurant-name">\${r.name} <span style="color: #999; font-size: 0.8em;">[\${areaNames[r.area]}]</span></div>
+                        <div class="restaurant-category">\${r.category}</div>
+                        <div class="restaurant-items">\${r.recommend.join('、')}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteRestaurant('\${r.area}', \${r.index})">🗑️ 刪除</button>
+                </div>
+            \`).join('');
+        }
+
+        function addRestaurant() {
+            const area = document.getElementById('newRestaurantArea').value;
+            const name = document.getElementById('newRestaurantName').value.trim();
+            const category = document.getElementById('newRestaurantCategory').value.trim();
+            const items = document.getElementById('newRestaurantItems').value.trim();
+
+            if (!name || !category || !items) {
+                alert('請填寫完整資料');
+                return;
+            }
+
+            const restaurants = loadRestaurants();
+            const recommend = items.split(',').map(s => s.trim());
+
+            restaurants[area].push({
+                name: name,
+                category: category,
+                recommend: recommend
+            });
+
+            localStorage.setItem('restaurants', JSON.stringify(restaurants));
+
+            document.getElementById('newRestaurantName').value = '';
+            document.getElementById('newRestaurantCategory').value = '';
+            document.getElementById('newRestaurantItems').value = '';
+
+            updateRestaurantList();
+            showMessage('店家新增成功！');
+        }
+
+        function deleteRestaurant(area, index) {
+            if (!confirm('確定要刪除這家店嗎？')) return;
+
+            const restaurants = loadRestaurants();
+            restaurants[area].splice(index, 1);
+            localStorage.setItem('restaurants', JSON.stringify(restaurants));
+
+            updateRestaurantList();
+            showMessage('店家已刪除！');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.getAttribute('data-filter');
+                    updateRestaurantList();
+                });
+            });
+        });
+
+        document.getElementById('addRestaurantBtn').addEventListener('click', addRestaurant);
+
+        function updateMemberSelects() {
+            const members = loadMembers();
+            const dinerSelect = document.getElementById('diner');
+            const fillerSelect = document.getElementById('filler');
+            const deptSelect = document.getElementById('dept');
+
+            dinerSelect.innerHTML = '<option value="">請選擇</option>';
+            fillerSelect.innerHTML = '<option value="">請選擇</option>';
+            deptSelect.innerHTML = '<option value="">請選擇</option>';
+
+            members.forEach(member => {
+                const option1 = document.createElement('option');
+                option1.value = member.name;
+                option1.textContent = member.name;
+                dinerSelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = member.name;
+                option2.textContent = member.name;
+                fillerSelect.appendChild(option2);
+            });
+
+            const depts = [...new Set(members.map(m => m.dept))];
+            depts.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                deptSelect.appendChild(option);
+            });
+        }
+
+        function updateMemberList() {
+            const members = loadMembers();
+            const container = document.getElementById('memberList');
+
+            container.innerHTML = members.map((member, index) => \`
+                <div class="member-item">
+                    <div class="member-info">
+                        <div class="member-name">\${member.name}</div>
+                        <div class="member-dept">\${member.dept}</div>
+                    </div>
+                    <button class="delete-btn" data-index="\${index}">🗑️ 刪除</button>
+                </div>
+            \`).join('');
+
+            container.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    deleteMember(index);
+                });
+            });
+        }
+
+        function addMember() {
+            const name = document.getElementById('newMemberName').value.trim();
+            const dept = document.getElementById('newMemberDept').value.trim();
+
+            if (!name || !dept) {
+                alert('請輸入姓名和部門');
+                return;
+            }
+
+            const members = loadMembers();
+            members.push({name, dept});
+            localStorage.setItem('members', JSON.stringify(members));
+
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberDept').value = '';
+
+            updateMemberSelects();
+            updateMemberList();
+            showMessage('成員新增成功！');
+        }
+
+        function deleteMember(index) {
+            if (!confirm('確定要刪除這位成員嗎？')) return;
+
+            const members = loadMembers();
+            members.splice(index, 1);
+            localStorage.setItem('members', JSON.stringify(members));
+
+            updateMemberSelects();
+            updateMemberList();
+            showMessage('成員已刪除！');
+        }
+
+        document.getElementById('addMemberBtn').addEventListener('click', addMember);
+
+        document.getElementById('editTitleBtn').addEventListener('click', function() {
+            document.getElementById('newTitle').value = document.getElementById('systemTitle').textContent;
+            document.getElementById('titleModal').classList.add('show');
+        });
+
+        document.getElementById('saveTitleBtn').addEventListener('click', function() {
+            const newTitle = document.getElementById('newTitle').value.trim();
+            if (!newTitle) {
+                alert('請輸入標題');
+                return;
+            }
+
+            localStorage.setItem('systemTitle', newTitle);
+            document.getElementById('systemTitle').textContent = newTitle;
+            document.getElementById('titleModal').classList.remove('show');
+            showMessage('標題已更新！');
+        });
+
+        document.getElementById('closeTitleModalBtn').addEventListener('click', function() {
+            document.getElementById('titleModal').classList.remove('show');
+        });
+
+        function showMessage(text) {
+            const msg = document.getElementById('successMessage');
+            msg.textContent = '✅ ' + text;
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        function loadOrders() {
+            return JSON.parse(localStorage.getItem('orders') || '[]');
+        }
+
+        function saveOrderToStorage(order) {
+            const orders = loadOrders();
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const order = {
+                id: Date.now(),
+                diner: document.getElementById('diner').value,
+                filler: document.getElementById('filler').value,
+                dept: document.getElementById('dept').value,
+                lunch: document.getElementById('lunch').value,
+                lunchPrice: parseInt(document.getElementById('lunchPrice').value) || 0,
+                drink: document.getElementById('drink').value || '-',
+                drinkPrice: parseInt(document.getElementById('drinkPrice').value) || 0,
+                sugar: document.getElementById('sugar').value || '-',
+                ice: document.getElementById('ice').value || '-',
+                total: (parseInt(document.getElementById('lunchPrice').value) || 0) + 
+                       (parseInt(document.getElementById('drinkPrice').value) || 0)
+            };
+
+            saveOrderToStorage(order);
+            showMessage('訂單已儲存！');
+            this.reset();
+            updateAllViews();
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tabName + '-tab').classList.add('active');
+
+                updateAllViews();
+            });
+        });
+
+        function updateAllViews() {
+            updateOrderList();
+            updateSummary();
+            updateStats();
+            updateRestaurantList();
+        }
+
+        function updateOrderList() {
+            const orders = loadOrders();
+            const container = document.getElementById('orderList');
+
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="empty-state">📝<p>還沒有任何訂單</p></div>';
+                return;
+            }
+
+            container.innerHTML = orders.map(order => \`
+                <div class="order-card">
+                    <h3>\${order.diner} \${order.filler !== order.diner ? '（由' + order.filler + '代點）' : ''}</h3>
+                    <p>🏢 \${order.dept}</p>
+                    <p>🍱 \${order.lunch} - $\${order.lunchPrice}</p>
+                    <p>🥤 \${order.drink} \${order.sugar && order.sugar !== '-' ? '(' + order.sugar + '、' + order.ice + ')' : ''} - $\${order.drinkPrice}</p>
+                    <p class="total">💰 小計：$\${order.total}</p>
+                    <button class="delete-btn" data-id="\${order.id}">🗑️ 刪除</button>
+                </div>
+            \`).join('');
+
+            container.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    deleteOrder(id);
+                });
+            });
+        }
+
+        function deleteOrder(id) {
+            if (!confirm('確定要刪除這筆訂單嗎？')) return;
+
+            let orders = loadOrders();
+            orders = orders.filter(o => o.id !== id);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            updateAllViews();
+            showMessage('訂單已刪除！');
+        }
+
+        function updateSummary() {
+            const orders = loadOrders();
+
+            const lunchMap = {};
+            orders.forEach(order => {
+                if (order.lunch && !['休假', '夜班', 'PASS'].includes(order.lunch)) {
+                    if (!lunchMap[order.lunch]) {
+                        lunchMap[order.lunch] = {count: 0, people: []};
+                    }
+                    lunchMap[order.lunch].count++;
+                    lunchMap[order.lunch].people.push(order.diner);
+                }
+            });
+
+            const lunchContainer = document.getElementById('lunchSummary');
+            if (Object.keys(lunchMap).length === 0) {
+                lunchContainer.innerHTML = '<div class="empty-state" style="padding: 20px;">還沒有午餐訂單</div>';
+            } else {
+                lunchContainer.innerHTML = Object.entries(lunchMap).map(([name, data]) => \`
+                    <div class="summary-item">
+                        <div>
+                            <div class="name">\${name}</div>
+                            <div class="people">\${data.people.join('、')}</div>
+                        </div>
+                        <div class="count">\${data.count}份</div>
+                    </div>
+                \`).join('');
+            }
+
+            const drinkMap = {};
+            orders.forEach(order => {
+                if (order.drink && !['PASS', '-', ''].includes(order.drink)) {
+                    const key = \`\${order.drink}|\${order.sugar || '-'}|\${order.ice || '-'}\`;
+                    if (!drinkMap[key]) {
+                        drinkMap[key] = {
+                            drink: order.drink,
+                            sugar: order.sugar || '-',
+                            ice: order.ice || '-',
+                            count: 0,
+                            people: []
+                        };
+                    }
+                    drinkMap[key].count++;
+                    drinkMap[key].people.push(order.diner);
+                }
+            });
+
+            const drinkContainer = document.getElementById('drinkSummary');
+            if (Object.keys(drinkMap).length === 0) {
+                drinkContainer.innerHTML = '<div class="empty-state" style="padding: 20px;">還沒有飲料訂單</div>';
+            } else {
+                drinkContainer.innerHTML = Object.values(drinkMap).map(data => \`
+                    <div class="summary-item">
+                        <div>
+                            <div class="name">\${data.drink}（\${data.sugar}、\${data.ice}）</div>
+                            <div class="people">\${data.people.join('、')}</div>
+                        </div>
+                        <div class="count">\${data.count}杯</div>
+                    </div>
+                \`).join('');
+            }
+        }
+
+        function updateStats() {
+            const orders = loadOrders();
+
+            let totalLunch = 0;
+            let totalDrink = 0;
+            orders.forEach(order => {
+                totalLunch += order.lunchPrice || 0;
+                totalDrink += order.drinkPrice || 0;
+            });
+
+            document.getElementById('totalLunch').textContent = \`$\${totalLunch}\`;
+            document.getElementById('totalDrink').textContent = \`$\${totalDrink}\`;
+            document.getElementById('totalAll').textContent = \`$\${totalLunch + totalDrink}\`;
+            document.getElementById('totalPeople').textContent = \`\${orders.length}人\`;
+
+            const personalMap = {};
+            orders.forEach(order => {
+                if (!personalMap[order.diner]) {
+                    personalMap[order.diner] = {dept: order.dept, lunch: 0, drink: 0};
+                }
+                personalMap[order.diner].lunch += order.lunchPrice || 0;
+                personalMap[order.diner].drink += order.drinkPrice || 0;
+            });
+
+            const personalContainer = document.getElementById('personalStats');
+            if (Object.keys(personalMap).length === 0) {
+                personalContainer.innerHTML = '<div class="empty-state" style="padding: 20px;">還沒有訂單資料</div>';
+            } else {
+                personalContainer.innerHTML = Object.entries(personalMap).map(([name, data]) => \`
+                    <div class="summary-item">
+                        <div>
+                            <div class="name">\${name}</div>
+                            <div class="people">午餐 $\${data.lunch} · 飲料 $\${data.drink}</div>
+                        </div>
+                        <div class="count">$\${data.lunch + data.drink}</div>
+                    </div>
+                \`).join('');
+            }
+
+            const deptMap = {};
+            orders.forEach(order => {
+                if (!deptMap[order.dept]) {
+                    deptMap[order.dept] = {lunch: 0, drink: 0};
+                }
+                deptMap[order.dept].lunch += order.lunchPrice || 0;
+                deptMap[order.dept].drink += order.drinkPrice || 0;
+            });
+
+            const deptContainer = document.getElementById('deptStats');
+            if (Object.keys(deptMap).length === 0) {
+                deptContainer.innerHTML = '<div class="empty-state" style="padding: 20px;">還沒有訂單資料</div>';
+            } else {
+                deptContainer.innerHTML = Object.entries(deptMap).map(([dept, data]) => \`
+                    <div class="summary-item">
+                        <div>
+                            <div class="name">\${dept}</div>
+                            <div class="people">午餐 $\${data.lunch} · 飲料 $\${data.drink}</div>
+                        </div>
+                        <div class="count">$\${data.lunch + data.drink}</div>
+                    </div>
+                \`).join('');
+            }
+        }
+
+        loadTitle();
+        updateMemberSelects();
+        updateMemberList();
+        updateRestaurantList();
+        updateAllViews();
+    </script>
+</body>
+</html>
